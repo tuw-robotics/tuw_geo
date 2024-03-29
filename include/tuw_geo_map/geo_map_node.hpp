@@ -7,14 +7,31 @@
 #include <thread>
 #include <tuw_geometry/geo_map.hpp>
 #include <tf2_ros/transform_broadcaster.h>
+#include "rclcpp_lifecycle/lifecycle_node.hpp"
+#include "rclcpp_lifecycle/lifecycle_publisher.hpp"
 #include <nav_msgs/msg/occupancy_grid.hpp>
 
 namespace tuw_geo_map
 {
-  class GeoMapNode : public rclcpp::Node
+  class GeoMapNode : public rclcpp_lifecycle::LifecycleNode
   {
   public:
-    GeoMapNode(const std::string &node_name);
+    explicit GeoMapNode(const std::string & node_name, bool intra_process_comms = false);
+
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_configure(
+    const rclcpp_lifecycle::State &);
+
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_activate(
+    const rclcpp_lifecycle::State & state);
+
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_deactivate(
+    const rclcpp_lifecycle::State & state);
+
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_cleanup(
+    const rclcpp_lifecycle::State &);
+
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_shutdown(
+    const rclcpp_lifecycle::State & state);
 
   private:
     rclcpp::TimerBase::SharedPtr timer_loop_;
@@ -32,6 +49,9 @@ namespace tuw_geo_map
     std::string frame_map_;
     std::string frame_utm_;
     std::string mapimage_folder_;
+    double origin_latitude_;
+    double origin_longitude_;
+    double origin_altitude_;
     bool publish_utm_;
     void declare_parameters();
     void read_parameters();

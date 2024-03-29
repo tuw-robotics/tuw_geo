@@ -7,9 +7,9 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(rclpy REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(rclcpp_components REQUIRED)
+find_package(rclcpp_lifecycle REQUIRED)
+find_package(lifecycle_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(tuw_geometry REQUIRED)
@@ -23,9 +23,9 @@ target_include_directories(geo_map PUBLIC
   $<INSTALL_INTERFACE:include>)
 ament_target_dependencies(
   geo_map
-  "rclpy"
   "rclcpp"
-  "rclcpp_components"
+  "rclcpp_lifecycle"
+  "lifecycle_msgs"
   "tf2_ros"
   "nav_msgs"
   "tuw_geometry"
@@ -40,9 +40,9 @@ target_compile_features(geo_map_node PUBLIC c_std_99 cxx_std_17)  # Require C99 
 target_link_libraries(geo_map_node geo_map )
 ament_target_dependencies(
   geo_map_node
-  "rclpy"
   "rclcpp"
-  "rclcpp_components"
+  "rclcpp_lifecycle"
+  "lifecycle_msgs"
   "tf2_ros"
   "nav_msgs"
   "tuw_geometry"
