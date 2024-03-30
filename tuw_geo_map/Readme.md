@@ -1,5 +1,5 @@
 
-# tuw_geo
+# tuw_geo_map
 
 ## geo_map_node
 The node is a lifecycle node. Therefore you have to configure and activete the node after starting.
