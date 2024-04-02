@@ -1,5 +1,5 @@
-#ifndef TUW_GEO_MAP__GEO_MAP_NODE_HPP_
-#define TUW_GEO_MAP__GEO_MAP_NODE_HPP_
+#ifndef TUW_GEO_OBJECTS__GEO_OBJECTS_NODE_HPP_
+#define TUW_GEO_OBJECTS__GEO_OBJECTS_NODE_HPP_
 
 #include <memory>
 #include <opencv2/core/core.hpp>
@@ -13,10 +13,10 @@
 
 namespace tuw_geo_map
 {
-  class GeoMapNode : public rclcpp_lifecycle::LifecycleNode
+  class GeoObjectsNode : public rclcpp_lifecycle::LifecycleNode
   {
   public:
-    explicit GeoMapNode(const std::string & node_name, bool intra_process_comms = false);
+    explicit GeoObjectsNode(const std::string & node_name, bool intra_process_comms = false);
 
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_configure(
     const rclcpp_lifecycle::State &);
@@ -34,29 +34,23 @@ namespace tuw_geo_map
     const rclcpp_lifecycle::State & state);
 
   private:
+    std::string topic_map_;
+    std::string frame_map_;
     rclcpp::TimerBase::SharedPtr timer_loop_;
-    rclcpp::TimerBase::SharedPtr timer_parameters_;
 
-    rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr pub_map_img_;
+    rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr pub_occupancy_grid_;
+
+
+    nav_msgs::msg::OccupancyGrid::SharedPtr occupancy_grid_;
+    std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
 
     // callbacks
     void callback_timer();
-    void callback_geo_point();
 
-    nav_msgs::msg::OccupancyGrid::SharedPtr occupancy_map_img_;
-    tuw::GeoMapMetaData info_;
-    std::string topic_map_;
-    std::string frame_map_;
-    std::string frame_utm_;
-    std::string mapimage_folder_;
-    bool publish_utm_;
+    // functions
     void declare_parameters();
     void read_parameters();
-
     void publish_transforms();
-    std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
-
-    void read_mapimage(const std::string &mapimage);
   };
 }
-#endif // TUW_GEO_MAP__GEO_MAP_NODE_HPP_
+#endif // TUW_GEO_OBJECTS__GEO_OBJECTS_NODE_HPP_

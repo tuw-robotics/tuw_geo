@@ -49,6 +49,13 @@ ament_target_dependencies(
   "OpenCV"
 )
 
+
+install(DIRECTORY
+    launch
+    config
+  DESTINATION share/${PROJECT_NAME}/
+)
+
 install(TARGETS 
   geo_map_node
   geo_map
