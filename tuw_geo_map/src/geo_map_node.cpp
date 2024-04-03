@@ -94,7 +94,7 @@ void GeoMapNode::callback_timer()
 
 void GeoMapNode::publish_transforms()
 {
-  if (publish_utm_)
+  if (publish_tf_)
   {
     geometry_msgs::msg::TransformStamped tf;
     tf.header.stamp = this->get_clock()->now();
@@ -141,11 +141,6 @@ void GeoMapNode::declare_parameters()
 {
   {
     auto descriptor = rcl_interfaces::msg::ParameterDescriptor{};
-    descriptor.description = "topic name for the geo map";
-    this->declare_parameter<std::string>("topic_map", "geo_map", descriptor);
-  }
-  {
-    auto descriptor = rcl_interfaces::msg::ParameterDescriptor{};
     descriptor.description = "frame_map";
     this->declare_parameter<std::string>("frame_map", "geo_map", descriptor);
   }
@@ -161,22 +156,18 @@ void GeoMapNode::declare_parameters()
   }
   {
     auto descriptor = rcl_interfaces::msg::ParameterDescriptor{};
-    descriptor.description = "on true the maps are published in relative to utm, otherwise with a zero link to frame_map";
-    this->declare_parameter<bool>("publish_utm", false, descriptor);
+    descriptor.description = "on true a tf from frame_utm to frame_map is published";
+    this->declare_parameter<bool>("publish_tf", false, descriptor);
   }
 }
 
 void GeoMapNode::read_parameters()
 {
-  this->get_parameter<std::string>("topic_map", topic_map_);
-  RCLCPP_INFO(this->get_logger(), "topic_map: %s", topic_map_.c_str());
   this->get_parameter<std::string>("frame_map", frame_map_);
   this->get_parameter<std::string>("frame_utm", frame_utm_);
-  this->get_parameter<bool>("publish_utm", publish_utm_);
-  RCLCPP_INFO(this->get_logger(), "publish_utm: %s",
-              (publish_utm_ ? " true -> maps are published in utm" : " false -> maps are published in map"));
+  this->get_parameter<bool>("publish_tf", publish_tf_);
+  RCLCPP_INFO(this->get_logger(), "publish_tf: %s",
+              (publish_tf_ ? " true: frame_utm -> frame_map is published" : " false: not tf is published"));
   this->get_parameter<std::string>("mapimage_folder", mapimage_folder_);
   RCLCPP_INFO(this->get_logger(), "mapimage_folder: %s", mapimage_folder_.c_str());
-
-
 }

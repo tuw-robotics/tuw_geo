@@ -45,11 +45,10 @@ namespace tuw_geo_map
 
     nav_msgs::msg::OccupancyGrid::SharedPtr occupancy_map_img_;
     tuw::GeoMapMetaData info_;
-    std::string topic_map_;
     std::string frame_map_;
     std::string frame_utm_;
     std::string mapimage_folder_;
-    bool publish_utm_;
+    bool publish_tf_;
     void declare_parameters();
     void read_parameters();
 
