@@ -141,12 +141,12 @@ void GeoMapNode::declare_parameters()
 {
   {
     auto descriptor = rcl_interfaces::msg::ParameterDescriptor{};
-    descriptor.description = "frame_map";
+    descriptor.description = "name of the map frame, only need if publish_tf == true";
     this->declare_parameter<std::string>("frame_map", "geo_map", descriptor);
   }
   {
     auto descriptor = rcl_interfaces::msg::ParameterDescriptor{};
-    descriptor.description = "frame_utm only need if publish_utm == true";
+    descriptor.description = "name of the utm frame, only need if publish_tf == true";
     this->declare_parameter<std::string>("frame_utm", "utm", descriptor);
   }
   {
