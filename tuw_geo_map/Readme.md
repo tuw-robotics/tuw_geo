@@ -11,6 +11,9 @@
 * __frame_utm__: 
   * Name of the utm frame, only need if *publish_tf == true*
   * default: *utm*
+* __frame_relative__: 
+  * if empty and publish_tf == true a tf is published from frame_utm -> frame_map.<br>If used a relative tf is published to from frame_relative to frame_map by substracting frame_relative form frame_utm -> frame_map. By doing so the altitute will be set to zero to allign the imaga with the map.
+  * default: *empty*
 * __mapimage_folder__: 
   * folder with the world file mapimage.jpw and the image mapimage.jpg
   * default: empty

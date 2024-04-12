@@ -10,6 +10,9 @@
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "rclcpp_lifecycle/lifecycle_publisher.hpp"
 #include <nav_msgs/msg/occupancy_grid.hpp>
+#include "tf2/exceptions.h"
+#include "tf2_ros/transform_listener.h"
+#include "tf2_ros/buffer.h"
 
 namespace tuw_geo_map
 {
@@ -38,6 +41,8 @@ namespace tuw_geo_map
     rclcpp::TimerBase::SharedPtr timer_parameters_;
 
     rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr pub_map_img_;
+    std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
+    std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
 
     // callbacks
     void callback_timer();
@@ -47,6 +52,7 @@ namespace tuw_geo_map
     tuw::GeoMapMetaData info_;
     std::string frame_map_;
     std::string frame_utm_;
+    std::string frame_relative_;
     std::string mapimage_folder_;
     bool publish_tf_;
     void declare_parameters();

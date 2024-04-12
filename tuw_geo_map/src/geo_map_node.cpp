@@ -7,6 +7,39 @@ using std::placeholders::_2;
 
 using namespace tuw_geo_map;
 
+void getTransformFromStamped(const geometry_msgs::msg::TransformStamped& transform_stamped, tf2::Transform& tf_transform) {
+    // Set translation
+    tf2::Vector3 translation;
+    translation.setX(transform_stamped.transform.translation.x);
+    translation.setY(transform_stamped.transform.translation.y);
+    translation.setZ(transform_stamped.transform.translation.z);
+    tf_transform.setOrigin(translation);
+
+    // Set rotation
+    tf2::Quaternion rotation;
+    rotation.setX(transform_stamped.transform.rotation.x);
+    rotation.setY(transform_stamped.transform.rotation.y);
+    rotation.setZ(transform_stamped.transform.rotation.z);
+    rotation.setW(transform_stamped.transform.rotation.w);
+    tf_transform.setRotation(rotation);
+}
+
+void setTransformToStamped(const tf2::Transform& tf_transform, geometry_msgs::msg::TransformStamped& transform_stamped) {
+    // Get translation
+    tf2::Vector3 translation = tf_transform.getOrigin();
+    transform_stamped.transform.translation.x = translation.x();
+    transform_stamped.transform.translation.y = translation.y();
+    transform_stamped.transform.translation.z = translation.z();
+
+    // Get rotation
+    tf2::Quaternion rotation = tf_transform.getRotation();
+    transform_stamped.transform.rotation.x = rotation.x();
+    transform_stamped.transform.rotation.y = rotation.y();
+    transform_stamped.transform.rotation.z = rotation.z();
+    transform_stamped.transform.rotation.w = rotation.w();
+}
+
+
 GeoMapNode::GeoMapNode(const std::string & node_name, bool intra_process_comms)
 : rclcpp_lifecycle::LifecycleNode(
     node_name, rclcpp::NodeOptions().use_intra_process_comms(intra_process_comms))
@@ -31,6 +64,8 @@ GeoMapNode::on_activate(const rclcpp_lifecycle::State & state)
   LifecycleNode::on_activate(state);
   tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
 
+  tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
+  tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
   if(mapimage_folder_.empty()){
     RCUTILS_LOG_ERROR_NAMED(get_name(), "mapimage_folder not definded");
@@ -96,15 +131,48 @@ void GeoMapNode::publish_transforms()
 {
   if (publish_tf_)
   {
-    geometry_msgs::msg::TransformStamped tf;
-    tf.header.stamp = this->get_clock()->now();
-    tf.header.frame_id = frame_utm_;
-    tf.child_frame_id = frame_map_;
-    tf.transform.translation.x = info_.utm()[0];
-    tf.transform.translation.y = info_.utm()[1];
-    tf.transform.translation.z = info_.utm()[2];
-    RCLCPP_INFO_ONCE(this->get_logger(), "publish TF: frame_id: %s, child_frame_id: %s", tf.header.frame_id.c_str(), tf.child_frame_id.c_str());
-    tf_broadcaster_->sendTransform(tf);
+    tf2::Transform tf_utm_map;
+    geometry_msgs::msg::TransformStamped tf_msg_utm_relativ;
+    tf_utm_map.setOrigin(tf2::Vector3(info_.utm()[0], info_.utm()[1], info_.utm()[2]));
+    tf_utm_map.setRotation(tf2::Quaternion(0.0, 0.0, 0.0, 1.0));
+
+    bool relative_frame_found = false;
+    if(!frame_relative_.empty()) {
+      // Look up for the transformation between map and utm frames
+      try {
+        tf_msg_utm_relativ = tf_buffer_->lookupTransform(frame_utm_, frame_relative_,  tf2::TimePointZero);
+        relative_frame_found = true;
+      } catch (const tf2::TransformException & ex) {
+        RCLCPP_INFO(
+          this->get_logger(), "Could not transform %s to %s: %s",
+          frame_utm_.c_str(), frame_relative_.c_str(), ex.what());
+          return;
+      }
+    }
+    if (relative_frame_found){
+      /// publisch relative -> map  (without altitute)
+      tf2::Transform tf_utm_relativ;
+      getTransformFromStamped(tf_msg_utm_relativ, tf_utm_relativ);
+      tf2::Transform tf_relativ_map = tf_utm_relativ.inverseTimes(tf_utm_map);
+
+      geometry_msgs::msg::TransformStamped tf_msg_relativ_map;
+      tf_msg_relativ_map.header.stamp = this->get_clock()->now();
+      tf_msg_relativ_map.header.frame_id = frame_relative_;
+      tf_msg_relativ_map.child_frame_id = frame_map_;
+      setTransformToStamped(tf_relativ_map, tf_msg_relativ_map);
+      tf_msg_relativ_map.transform.translation.z = 0;  /// remove altitute
+      RCLCPP_INFO_ONCE(this->get_logger(), "publish TF: frame_id: %s, child_frame_id: %s", tf_msg_relativ_map.header.frame_id.c_str(), tf_msg_relativ_map.child_frame_id.c_str());
+      tf_broadcaster_->sendTransform(tf_msg_relativ_map);
+    } else {
+      /// publisch utm -> map
+      geometry_msgs::msg::TransformStamped tf_msg_utm_map;
+      tf_msg_utm_map.header.stamp = this->get_clock()->now();
+      tf_msg_utm_map.header.frame_id = frame_utm_;
+      tf_msg_utm_map.child_frame_id = frame_map_;
+      setTransformToStamped(tf_utm_map, tf_msg_utm_map);
+      RCLCPP_INFO_ONCE(this->get_logger(), "publish TF: frame_id: %s, child_frame_id: %s", tf_msg_utm_map.header.frame_id.c_str(), tf_msg_utm_map.child_frame_id.c_str());
+      tf_broadcaster_->sendTransform(tf_msg_utm_map);
+    }
   }
 }
 
@@ -151,6 +219,11 @@ void GeoMapNode::declare_parameters()
   }
   {
     auto descriptor = rcl_interfaces::msg::ParameterDescriptor{};
+    descriptor.description = "If used a relative tf is published to the given frame by substracing frame_utm -> frame_map. Altitute will be set on zero";
+    this->declare_parameter<std::string>("frame_relative", "", descriptor);
+  }
+  {
+    auto descriptor = rcl_interfaces::msg::ParameterDescriptor{};
     descriptor.description = "folder with the world file mapimage.jpw and the image mapimage.jpg";
     this->declare_parameter<std::string>("mapimage_folder", "", descriptor);
   }
@@ -165,6 +238,7 @@ void GeoMapNode::read_parameters()
 {
   this->get_parameter<std::string>("frame_map", frame_map_);
   this->get_parameter<std::string>("frame_utm", frame_utm_);
+  this->get_parameter<std::string>("frame_relative", frame_relative_);
   this->get_parameter<bool>("publish_tf", publish_tf_);
   RCLCPP_INFO(this->get_logger(), "publish_tf: %s",
               (publish_tf_ ? " true: frame_utm -> frame_map is published" : " false: not tf is published"));
