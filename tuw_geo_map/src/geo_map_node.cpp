@@ -73,7 +73,7 @@ GeoMapNode::on_activate(const rclcpp_lifecycle::State & state)
   pub_map_img_ = this->create_publisher<nav_msgs::msg::OccupancyGrid>("geo_map", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
 
   read_mapimage(mapimage_folder_);
-  RCUTILS_LOG_ERROR_NAMED(get_name(), "%s", info_.info_geo().c_str());
+  RCUTILS_LOG_INFO_NAMED(get_name(), "%s", info_.info_geo().c_str());
   
 
   using namespace std::chrono_literals;
@@ -183,18 +183,21 @@ void GeoMapNode::read_mapimage(const std::string &mapimage)
   std::string geo_info_filename = mapimage + std::string("mapimage.jgw");
   tuw::WorldFile world_file;
   world_file.read_jgw(geo_info_filename);
-  info_.size = map_img.size();
-  info_.resolution = world_file.resolution_x;
-  int zone = 33;
-  bool northp = true;
-  info_.init(world_file.coordinate_x, world_file.coordinate_y, 0.0, zone, northp);
+  
+  cv::Vec3d utm_bottom_left(0, 0, 0);
+  utm_bottom_left[0] = world_file.coordinate_x;
+  utm_bottom_left[1] = world_file.coordinate_y - map_img.size().height * world_file.resolution_x;
+
+  info_.init(map_img.size(), world_file.resolution_x, tuw::MapHdl::BOTTOM_LEFT, utm_bottom_left, 33, true);
+
+  cv::line(map_img, info_.w2m(tuw::Point2D(0,0)).p(), info_.w2m(tuw::Point2D(10, 20)).p(), cv::Scalar(0xFF), 1);
 
   occupancy_map_img_->header.frame_id = frame_map_;
   occupancy_map_img_->info.width = map_img.cols;
   occupancy_map_img_->info.height = map_img.rows;
-  occupancy_map_img_->info.resolution = info_.resolution;
-  occupancy_map_img_->info.origin.position.x = info_.origin.x();
-  occupancy_map_img_->info.origin.position.y = info_.origin.y() - map_img.rows * info_.resolution;
+  occupancy_map_img_->info.resolution = info_.resolution_x();
+  occupancy_map_img_->info.origin.position.x = 0;
+  occupancy_map_img_->info.origin.position.y = 0;
   occupancy_map_img_->info.origin.position.z = 0;
   occupancy_map_img_->data.resize(map_img.cols * map_img.rows);
   cv::Mat_<int8_t> img_des = cv::Mat(map_img.size(), CV_8S, &occupancy_map_img_->data[0]);
@@ -232,6 +235,16 @@ void GeoMapNode::declare_parameters()
     descriptor.description = "on true a tf from frame_utm to frame_map is published";
     this->declare_parameter<bool>("publish_tf", false, descriptor);
   }
+  {
+    auto descriptor = rcl_interfaces::msg::ParameterDescriptor{};
+    descriptor.description = "utm zone (Austria is 33)";
+    this->declare_parameter<int>("utm_zone", false, descriptor);
+  }
+  {
+    auto descriptor = rcl_interfaces::msg::ParameterDescriptor{};
+    descriptor.description = "utm northern hemisphere";
+    this->declare_parameter<bool>("northp", true, descriptor);
+  }
 }
 
 void GeoMapNode::read_parameters()
@@ -239,6 +252,8 @@ void GeoMapNode::read_parameters()
   this->get_parameter<std::string>("frame_map", frame_map_);
   this->get_parameter<std::string>("frame_utm", frame_utm_);
   this->get_parameter<std::string>("frame_relative", frame_relative_);
+  this->get_parameter<int>("utm_zone", utm_zone_);
+  this->get_parameter<bool>("northp", utm_northp_);
   this->get_parameter<bool>("publish_tf", publish_tf_);
   RCLCPP_INFO(this->get_logger(), "publish_tf: %s",
               (publish_tf_ ? " true: frame_utm -> frame_map is published" : " false: not tf is published"));

@@ -5,7 +5,7 @@
 #include <opencv2/core/core.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <thread>
-#include <tuw_geometry/geo_map.hpp>
+#include <tuw_geometry/geo_handler.hpp>
 #include <tf2_ros/transform_broadcaster.h>
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "rclcpp_lifecycle/lifecycle_publisher.hpp"
@@ -49,11 +49,13 @@ namespace tuw_geo_map
     void callback_geo_point();
 
     nav_msgs::msg::OccupancyGrid::SharedPtr occupancy_map_img_;
-    tuw::GeoMapMetaData info_;
+    tuw::GeoHdl info_;
     std::string frame_map_;
     std::string frame_utm_;
     std::string frame_relative_;
     std::string mapimage_folder_;
+    int utm_zone_;
+    bool utm_northp_;
     bool publish_tf_;
     void declare_parameters();
     void read_parameters();
