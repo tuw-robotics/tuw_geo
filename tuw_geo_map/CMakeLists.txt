@@ -15,6 +15,14 @@ find_package(nav_msgs REQUIRED)
 find_package(tuw_geometry REQUIRED)
 find_package(OpenCV REQUIRED)
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "/usr/share/cmake/geographiclib/")
+find_package(GeographicLib QUIET)
+if(GeographicLib_FOUND)
+  message(STATUS "GeographicLib found: building geo_map!")
+else()
+  message(ERROR "GeographicLib NOT found: not building geo_map!")
+endif()
+
 
 add_library(geo_map src/geo_map_node.cpp)
 target_compile_features(geo_map PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
@@ -30,6 +38,7 @@ ament_target_dependencies(
   "nav_msgs"
   "tuw_geometry"
   "OpenCV"
+  GeographicLib
 )
 
 add_executable(geo_map_node src/standalone_geo_map.cpp)
