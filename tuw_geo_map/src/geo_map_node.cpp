@@ -5,7 +5,7 @@
 using std::placeholders::_1;
 using std::placeholders::_2;
 
-using namespace tuw_geo_map;
+using namespace tuw_geo;
 
 void getTransformFromStamped(const geometry_msgs::msg::TransformStamped& transform_stamped, tf2::Transform& tf_transform) {
     // Set translation

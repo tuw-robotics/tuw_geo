@@ -14,7 +14,7 @@
 #include "tf2_ros/transform_listener.h"
 #include "tf2_ros/buffer.h"
 
-namespace tuw_geo_map
+namespace tuw_geo
 {
   class GeoMapNode : public rclcpp_lifecycle::LifecycleNode
   {
