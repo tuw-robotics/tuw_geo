@@ -37,7 +37,21 @@ ament_target_dependencies(
   GeographicLib
 )
 
-install(TARGETS geo_convert_node
+add_executable(time_fix_node src/time_fix_node.cpp src/standalone_time_fix.cpp)
+target_include_directories(time_fix_node PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_compile_features(time_fix_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+ament_target_dependencies(
+  time_fix_node
+  "rclcpp"
+  "tf2_ros"
+  "nav_msgs"
+  "sensor_msgs"
+  "tuw_ros2_utils"
+)
+
+install(TARGETS geo_convert_node time_fix_node
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)

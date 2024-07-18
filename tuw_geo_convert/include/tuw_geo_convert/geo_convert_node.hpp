@@ -24,7 +24,6 @@ class GeoConvert : public tuw::Node
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr pub_gps_utm_;
     rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr pub_gps_map_;
-    rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr pub_gps_now_;
 
     rclcpp::Subscription<sensor_msgs::msg::NavSatFix>::SharedPtr sub_gps_;
 

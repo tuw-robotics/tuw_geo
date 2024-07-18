@@ -13,7 +13,6 @@ GeoConvert::GeoConvert(const std::string &node_name)
   using namespace std::chrono_literals;
   pub_gps_utm_ = this->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("gps_utm", 10);
   pub_gps_map_ = this->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("gps_map", 10);
-  pub_gps_now_ = this->create_publisher<sensor_msgs::msg::NavSatFix>("gps_now", 10);
   timer_ = this->create_wall_timer(
       500ms, std::bind(&GeoConvert::timer_callback, this));
 
@@ -32,9 +31,6 @@ void GeoConvert::timer_callback()
 void GeoConvert::callback_gps(const sensor_msgs::msg::NavSatFix::SharedPtr msg)
 {
   RCLCPP_INFO(this->get_logger(), "gps: %12.10f°, %12.10f°, %12.10fm", msg->latitude, msg->longitude, msg->altitude);
-  sensor_msgs::msg::NavSatFix gps_now = *msg;
-  gps_now.header.stamp = get_clock()->now();
-  pub_gps_now_->publish(gps_now);
   geometry_msgs::msg::PoseWithCovarianceStamped utm;
   gps_to_utm(*msg, utm);
   utm.pose.pose.orientation.x = +0.7071068;

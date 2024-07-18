@@ -188,7 +188,9 @@ void GeoMapNode::read_mapimage(const std::string &mapimage)
   utm_bottom_left[0] = world_file.coordinate_x;
   utm_bottom_left[1] = world_file.coordinate_y - map_img.size().height * world_file.resolution_x;
 
-  info_.init(map_img.size(), world_file.resolution_x, tuw::MapHdl::BOTTOM_LEFT, utm_bottom_left, 33, true);
+  cv::Point2d bottom_left(0, -map_img.size().height * world_file.resolution_x);
+
+  info_.init(map_img.size(), world_file.resolution_x, bottom_left, utm_bottom_left, 33, true);
 
   cv::line(map_img, info_.w2m(tuw::Point2D(0,0)).p(), info_.w2m(tuw::Point2D(10, 20)).p(), cv::Scalar(0xFF), 1);
 
