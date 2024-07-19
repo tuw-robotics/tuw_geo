@@ -77,7 +77,7 @@ GeoMapNode::on_activate(const rclcpp_lifecycle::State & state)
   
 
   using namespace std::chrono_literals;
-  timer_loop_ = create_wall_timer(1000ms, std::bind(&GeoMapNode::callback_timer, this));
+  timer_loop_ = create_wall_timer(1000ms * pub_interval_ , std::bind(&GeoMapNode::callback_timer, this));
 
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
@@ -247,6 +247,11 @@ void GeoMapNode::declare_parameters()
     descriptor.description = "utm northern hemisphere";
     this->declare_parameter<bool>("northp", true, descriptor);
   }
+  {
+    auto descriptor = rcl_interfaces::msg::ParameterDescriptor{};
+    descriptor.description = "publishing interval in seconds. If 0 or less, the graph is published once.";
+    this->declare_parameter<int>("pub_interval", 10, descriptor);
+  }
 }
 
 void GeoMapNode::read_parameters()
@@ -261,4 +266,6 @@ void GeoMapNode::read_parameters()
               (publish_tf_ ? " true: frame_utm -> frame_map is published" : " false: not tf is published"));
   this->get_parameter<std::string>("mapimage_folder", mapimage_folder_);
   RCLCPP_INFO(this->get_logger(), "mapimage_folder: %s", mapimage_folder_.c_str());
+  this->get_parameter<int>("pub_interval", pub_interval_);
+  RCLCPP_INFO_ONCE(this->get_logger(), "pub_interval %4d", pub_interval_);
 }

@@ -57,6 +57,7 @@ namespace tuw_geo
     int utm_zone_;
     bool utm_northp_;
     bool publish_tf_;
+    int pub_interval_;
     void declare_parameters();
     void read_parameters();
 
