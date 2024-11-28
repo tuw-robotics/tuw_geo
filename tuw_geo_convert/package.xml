@@ -14,7 +14,7 @@
   <depend>nav_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>tuw_ros2_utils</depend>
-  <depend>geographiclib</depend>
+  <depend>tuw</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

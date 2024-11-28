@@ -1,7 +1,7 @@
 #ifndef TUW_GEO_CONVERT__TIME_FIX_NODE_HPP_
 #define TUW_GEO_CONVERT__TIME_FIX_NODE_HPP_
 
-#include "tuw_ros2_utils/node.hpp"
+#include "tuw/node.hpp"
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
 #include <tf2_ros/transform_listener.h>

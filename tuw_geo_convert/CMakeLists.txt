@@ -11,7 +11,7 @@ find_package(rclcpp REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
-find_package(tuw_ros2_utils REQUIRED)
+find_package(tuw REQUIRED)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "/usr/share/cmake/geographiclib/")
 find_package(GeographicLib QUIET)
@@ -33,7 +33,7 @@ ament_target_dependencies(
   "tf2_ros"
   "nav_msgs"
   "sensor_msgs"
-  "tuw_ros2_utils"
+  "tuw"
   GeographicLib
 )
 
@@ -48,7 +48,7 @@ ament_target_dependencies(
   "tf2_ros"
   "nav_msgs"
   "sensor_msgs"
-  "tuw_ros2_utils"
+  "tuw"
 )
 
 install(TARGETS geo_convert_node time_fix_node
