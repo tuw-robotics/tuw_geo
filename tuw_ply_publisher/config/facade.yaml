@@ -1,0 +1,10 @@
+ply_publisher:
+  ros__parameters:
+    use_geolocation: True
+    map_origin_x: 601555.829
+    map_origin_y: 5339032.0048
+    plc_origin_x: 601787.02
+    plc_origin_y: 5338889.88
+    plc_rotation: 210.
+    frame_id: "geo_map"
+    ply_path: "./ws00/src/tuw_geo/tuw_ply_publisher/config/facade.ply"
